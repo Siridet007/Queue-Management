@@ -102,12 +102,14 @@ class _PrintPageState extends State<PrintPage> {
           action: SnackBarAction(
             label: 'OK',
             onPressed: () {
-              Navigator.pushReplacement(
+              /*Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const FirstPage(),
                 ),
-              );
+              );*/
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
             },
           ),
         ),
@@ -152,12 +154,14 @@ class _PrintPageState extends State<PrintPage> {
     //printer.imageRaster(logo,align: PosAlign.values[2]);
     printer.cut();
     printer.disconnect();
-    Navigator.pushReplacement(
+    /*Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => const FirstPage(),
       ),
-    );
+    );*/
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
   }
 
   @override
@@ -191,10 +195,23 @@ class _PrintPageState extends State<PrintPage> {
       },
       child: Scaffold(
         backgroundColor: Colors.purple[50],
+        /*appBar: AppBar(
+          actions: [
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+              icon: Icon(
+                Icons.arrow_back,
+              ),
+            ),
+          ],
+        ),*/
         body: Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/images/BG.png'),
+              image: AssetImage('assets/images/BG-teblet-Red.jpg'),
               fit: BoxFit.fill,
             ),
           ),

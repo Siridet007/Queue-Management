@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:queue_management/model/model.dart';
 import 'package:queue_management/page/print.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class FirstPage extends StatefulWidget {
@@ -29,6 +30,7 @@ class _FirstPageState extends State<FirstPage> {
   bool select = false;
   DateTime dateTime = DateTime.now();
   List<GetQueue>? queueList = [];
+  VideoPlayerController? controller;
 
   Future<void> loadData() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -84,9 +86,21 @@ class _FirstPageState extends State<FirstPage> {
   void initState() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     WakelockPlus.enabled;
+    controller = VideoPlayerController.asset('assets/images/BG-teblet.mp4')
+      ..setLooping(true) // Enable looping
+      ..initialize().then((_) {
+        setState(() {}); // Refresh to show the video once initialized
+        controller!.play(); // Start playing automatically
+      });
 
     super.initState();
     loadData();
+  }
+
+  @override
+  void dispose() {
+    controller!.dispose();
+    super.dispose();
   }
 
   @override
@@ -99,320 +113,349 @@ class _FirstPageState extends State<FirstPage> {
         return false;
       },
       child: Scaffold(
-        body: Container(
-          width: width,
-          height: height,
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/BG-teblet.png'),
-              fit: BoxFit.fill,
+        body: Stack(
+          children: [
+            /*Container(
+              width: width,
+              height: height,
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/BG-teblet.png'),
+                  fit: BoxFit.fill,
+                ),
+              ),
+            ),*/
+            SizedBox(
+              width: width,
+              height: height,
+              child: AspectRatio(
+                aspectRatio: controller!.value.aspectRatio,
+                child: VideoPlayer(controller!),
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Column(
-                children: [
-                  const SizedBox(height: 220),
-                  Text(
-                    'Welcome',
-                    style: TextStyle(
-                      fontFamily: 'en',
-                      fontSize: 85,
-                      color: Colors.yellow.shade700,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 5,
-                    ),
-                  ),
-                  const SizedBox(height: 50),
-                  Text(
-                    'Please Press For\n  Queue Number.',
-                    style: TextStyle(
-                      fontFamily: 'en',
-                      fontSize: 40,
-                      color: Colors.yellow.shade700,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 5,
-                    ),
-                  ),
-                  const SizedBox(height: 50),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: true,
-                          builder: (context) => const AlertDialog(
-                            backgroundColor: Colors.transparent,
-                            title: SizedBox(
-                              height: 200,
-                              child: CircularProgressIndicator(
-                                color: Colors.purple,
-                              ),
-                            ),
+            Positioned(
+              top: 0,
+              child: Container(
+                width: width,
+                height: height,
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Column(
+                      children: [
+                        const SizedBox(height: 220),
+                        Text(
+                          'Welcome',
+                          style: TextStyle(
+                            fontFamily: 'en',
+                            fontSize: 85,
+                            color: Colors.yellow.shade700,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 5,
                           ),
-                        );
-                        getQueueData().then((value) {
-                          setState(() {
-                            queueList = value;
-                            if (queueList == null) {
-                              Navigator.of(context).pop();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'THERE\'S SOMETHING WRONG. PLEASE CONTACT THE STAFF.',
-                                    style: TextStyle(
-                                      color: Colors.yellow,
-                                      fontFamily: 'th',
+                        ),
+                        const SizedBox(height: 50),
+                        Text(
+                          'Please Press For\n  Queue Number.',
+                          style: TextStyle(
+                            fontFamily: 'en',
+                            fontSize: 40,
+                            color: Colors.yellow.shade700,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 5,
+                          ),
+                        ),
+                        const SizedBox(height: 50),
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: true,
+                                builder: (context) => const AlertDialog(
+                                  backgroundColor: Colors.transparent,
+                                  title: SizedBox(
+                                    height: 200,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.red,
                                     ),
                                   ),
-                                  duration: Duration(seconds: 5),
-                                  backgroundColor: Colors.purple,
-                                  elevation: 50,
                                 ),
                               );
-                            } else {
-                              print(jsonEncode(queueList));
-                              Navigator.push(
+                              getQueueData().then((value) {
+                                setState(() {
+                                  queueList = value;
+                                  if (queueList == null) {
+                                    Navigator.of(context).pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'THERE\'S SOMETHING WRONG. PLEASE CONTACT THE STAFF.',
+                                          style: TextStyle(
+                                            color: Colors.yellow,
+                                            fontFamily: 'th',
+                                          ),
+                                        ),
+                                        duration: Duration(seconds: 5),
+                                        backgroundColor: Colors.red,
+                                        elevation: 50,
+                                      ),
+                                    );
+                                  } else {
+                                    print(jsonEncode(queueList));
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PrintPage(
+                                          waitingText:
+                                              '${queueList!.first.queuewait}',
+                                          q: queueList!.first.nextqueue,
+                                          date: DateFormat('dd MMM yyyy HH:mm')
+                                              .format(
+                                            DateTime.parse(
+                                              queueList!.first.qdate.toString(),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                });
+                              });
+                              /*Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => PrintPage(
-                                    waitingText:
-                                        '${queueList!.first.queuewait}',
-                                    q: queueList!.first.nextqueue,
-                                    date:
-                                        DateFormat('dd MMM yyyy HH:mm').format(
-                                      DateTime.parse(
-                                        queueList!.first.qdate.toString(),
+                                      waitingText: '10',
+                                      q: 'T05',
+                                      date: '25/11/2024'),
+                                ),
+                              );*/
+                            });
+                          },
+                          child: Container(
+                            width: 150,
+                            height: 150,
+                            decoration: BoxDecoration(
+                              //border: Border.all(),
+                              //borderRadius: BorderRadius.circular(30),
+                              color: Colors.yellow.shade700,
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Press',
+                                  style: TextStyle(
+                                    fontFamily: 'en',
+                                    fontSize: 40,
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    /*select
+                        ? SizedBox(
+                            width: width! * .1,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      text = 'Select Language';
+                                      wait = 'Waiting';
+                                      wait2 = 'queue';
+                                      printBT = 'Take Queue Here';
+                                      lan = 'EN';
+                                      select = !select;
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 75,
+                                    height: 50,
+                                    decoration: const BoxDecoration(
+                                      image: DecorationImage(
+                                        image:
+                                            AssetImage('assets/images/flags/el.png'),
+                                        fit: BoxFit.fill,
+                                        alignment: Alignment.centerRight,
+                                      ),
+                                      //border: Border.all(),
+                                    ),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      text = 'เลือกภาษา';
+                                      wait = 'จำนวนคิว';
+                                      wait2 = 'คิว';
+            
+                                      printBT = 'รับบัตรคิวที่นี่';
+                                      lan = 'TH';
+                                      select = !select;
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 80,
+                                    height: 50,
+                                    decoration: const BoxDecoration(
+                                      image: DecorationImage(
+                                        image:
+                                            AssetImage('assets/images/flags/th.png'),
+                                        fit: BoxFit.contain,
+                                        alignment: Alignment.centerRight,
+                                      ),
+                                      //border: Border.all(),
+                                    ),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      text = '選擇語言';
+                                      wait = '佇列數';
+                                      wait2 = '佇列';
+            
+                                      printBT = '領取排隊卡';
+                                      lan = 'CHS';
+                                      select = !select;
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 80,
+                                    height: 50,
+                                    decoration: const BoxDecoration(
+                                      image: DecorationImage(
+                                        image:
+                                            AssetImage('assets/images/flags/cn2.png'),
+                                        fit: BoxFit.contain,
+                                        alignment: Alignment.centerRight,
                                       ),
                                     ),
                                   ),
                                 ),
-                              );
-                            }
-                          });
-                        });
-                      });
-                    },
-                    child: Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        //border: Border.all(),
-                        //borderRadius: BorderRadius.circular(30),
-                        color: Colors.yellow.shade700,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Press',
-                            style: TextStyle(
-                              fontFamily: 'en',
-                              fontSize: 40,
-                              color: Colors.purple[500],
-                              fontWeight: FontWeight.bold,
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      text = '选择语言';
+                                      wait = '队列数量';
+                                      wait2 = '队列';
+            
+                                      printBT = '领取排队卡';
+                                      lan = 'CHT';
+                                      select = !select;
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 80,
+                                    height: 50,
+                                    decoration: const BoxDecoration(
+                                      image: DecorationImage(
+                                          image: AssetImage(
+                                              'assets/images/flags/cn1.png'),
+                                          fit: BoxFit.contain,
+                                          alignment: Alignment.centerRight),
+                                    ),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      text = 'Выберите язык';
+                                      wait = 'количество';
+                                      wait2 = 'очередь';
+            
+                                      printBT = 'Получите карту очереди';
+                                      lan = 'RS';
+                                      select = !select;
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 80,
+                                    height: 50,
+                                    decoration: const BoxDecoration(
+                                      image: DecorationImage(
+                                        image:
+                                            AssetImage('assets/images/flags/rs.png'),
+                                        fit: BoxFit.contain,
+                                        alignment: Alignment.centerRight,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      text = 'اختر اللغة';
+                                      wait = 'عدد قوائم الانتظار';
+                                      wait2 = 'طابور';
+            
+                                      printBT = 'الحصول على بطاقة الانتظار';
+                                      lan = 'AE';
+                                      select = !select;
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 80,
+                                    height: 50,
+                                    decoration: const BoxDecoration(
+                                      image: DecorationImage(
+                                        image:
+                                            AssetImage('assets/images/flags/ae.png'),
+                                        fit: BoxFit.contain,
+                                        alignment: Alignment.centerRight,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      text = '言語を選択してください';
+                                      wait = 'キューの数';
+                                      wait2 = '列';
+            
+                                      printBT = 'キューカードを入手する';
+                                      lan = 'JP';
+                                      select = !select;
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 80,
+                                    height: 50,
+                                    decoration: const BoxDecoration(
+                                      image: DecorationImage(
+                                        image:
+                                            AssetImage('assets/images/flags/jp.png'),
+                                        fit: BoxFit.contain,
+                                        alignment: Alignment.centerRight,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                          )
+                        : Container(
+                            width: width! * .1,
+                          ),*/
+                  ],
+                ),
               ),
-              /*select
-                  ? SizedBox(
-                      width: width! * .1,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                text = 'Select Language';
-                                wait = 'Waiting';
-                                wait2 = 'queue';
-                                printBT = 'Take Queue Here';
-                                lan = 'EN';
-                                select = !select;
-                              });
-                            },
-                            child: Container(
-                              width: 75,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                  image:
-                                      AssetImage('assets/images/flags/el.png'),
-                                  fit: BoxFit.fill,
-                                  alignment: Alignment.centerRight,
-                                ),
-                                //border: Border.all(),
-                              ),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                text = 'เลือกภาษา';
-                                wait = 'จำนวนคิว';
-                                wait2 = 'คิว';
-
-                                printBT = 'รับบัตรคิวที่นี่';
-                                lan = 'TH';
-                                select = !select;
-                              });
-                            },
-                            child: Container(
-                              width: 80,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                  image:
-                                      AssetImage('assets/images/flags/th.png'),
-                                  fit: BoxFit.contain,
-                                  alignment: Alignment.centerRight,
-                                ),
-                                //border: Border.all(),
-                              ),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                text = '選擇語言';
-                                wait = '佇列數';
-                                wait2 = '佇列';
-
-                                printBT = '領取排隊卡';
-                                lan = 'CHS';
-                                select = !select;
-                              });
-                            },
-                            child: Container(
-                              width: 80,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                  image:
-                                      AssetImage('assets/images/flags/cn2.png'),
-                                  fit: BoxFit.contain,
-                                  alignment: Alignment.centerRight,
-                                ),
-                              ),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                text = '选择语言';
-                                wait = '队列数量';
-                                wait2 = '队列';
-
-                                printBT = '领取排队卡';
-                                lan = 'CHT';
-                                select = !select;
-                              });
-                            },
-                            child: Container(
-                              width: 80,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                    image: AssetImage(
-                                        'assets/images/flags/cn1.png'),
-                                    fit: BoxFit.contain,
-                                    alignment: Alignment.centerRight),
-                              ),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                text = 'Выберите язык';
-                                wait = 'количество';
-                                wait2 = 'очередь';
-
-                                printBT = 'Получите карту очереди';
-                                lan = 'RS';
-                                select = !select;
-                              });
-                            },
-                            child: Container(
-                              width: 80,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                  image:
-                                      AssetImage('assets/images/flags/rs.png'),
-                                  fit: BoxFit.contain,
-                                  alignment: Alignment.centerRight,
-                                ),
-                              ),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                text = 'اختر اللغة';
-                                wait = 'عدد قوائم الانتظار';
-                                wait2 = 'طابور';
-
-                                printBT = 'الحصول على بطاقة الانتظار';
-                                lan = 'AE';
-                                select = !select;
-                              });
-                            },
-                            child: Container(
-                              width: 80,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                  image:
-                                      AssetImage('assets/images/flags/ae.png'),
-                                  fit: BoxFit.contain,
-                                  alignment: Alignment.centerRight,
-                                ),
-                              ),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                text = '言語を選択してください';
-                                wait = 'キューの数';
-                                wait2 = '列';
-
-                                printBT = 'キューカードを入手する';
-                                lan = 'JP';
-                                select = !select;
-                              });
-                            },
-                            child: Container(
-                              width: 80,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                  image:
-                                      AssetImage('assets/images/flags/jp.png'),
-                                  fit: BoxFit.contain,
-                                  alignment: Alignment.centerRight,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : Container(
-                      width: width! * .1,
-                    ),*/
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
